@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{PAGE_TITLE}} — World Bible</title>
+  <meta name="description" content="{{PAGE_SUMMARY}}">
+  <meta name="author" content="{{PAGE_AUTHOR}}">
+  <meta name="generator" content="Novelverse Forge v4 — Visual Genome Engine">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+
+  <!-- Google Fonts (dynamic — only loads fonts actually used in the design) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="{{GOOGLE_FONTS_URL}}" rel="stylesheet">
+
+  <!-- Base CSS: layout skeleton, component structure, reset (no theme colors) -->
+  <style>{{BASE_CSS}}</style>
+
+  <!-- Dynamic CSS: ALL visual styles generated from design scheme JSON -->
+  <style>{{DYNAMIC_CSS}}</style>
+
+  <!-- SPA transitions, search overlay, nav indicators, responsive tweaks -->
+  <style>
+    /* ── Page Transition System ── */
+    .page { display: none; opacity: 0; transform: translateY(12px); }
+    .page.active { display: block; animation: nv-pageIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .page.exiting { animation: nv-pageOut 0.2s cubic-bezier(0.4,0,0.2,1) forwards; }
+    @keyframes nv-pageIn { to { opacity: 1; transform: translateY(0); } }
+    @keyframes nv-pageOut { to { opacity: 0; transform: translateY(-12px); } }
+
+    /* ── Scroll Reveal ── */
+    .reveal-target { opacity: 0; transform: translateY(24px); transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1); }
+    .reveal-target.revealed { opacity: 1; transform: translateY(0); }
+
+    /* ── Search Overlay ── */
+    #search-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: none; align-items: flex-start; justify-content: center; padding-top: 15vh; }
+    #search-overlay.open { display: flex; animation: nv-fadeIn 0.2s ease; }
+    @keyframes nv-fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    #search-overlay .search-panel { width: 90%; max-width: 640px; background: var(--nv-color-surface); border: 1px solid var(--nv-color-border); border-radius: var(--nv-radius-lg); box-shadow: var(--nv-shadow-xl); overflow: hidden; }
+    #search-overlay .search-panel input { width: 100%; padding: 20px 24px; font-size: 1.2rem; border: none; border-bottom: 1px solid var(--nv-color-border); background: transparent; color: var(--nv-color-text-primary); outline: none; }
+    #search-overlay .search-panel input::placeholder { color: var(--nv-color-text-muted); }
+    #search-overlay .overlay-results { max-height: 50vh; overflow-y: auto; }
+    #search-overlay .overlay-results li { padding: 14px 24px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    #search-overlay .overlay-results li:hover { background: rgba(255,255,255,0.04); }
+    #search-overlay .overlay-close { position: fixed; top: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); color: var(--nv-color-text-primary); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all var(--nv-duration-fast); z-index: 10000; }
+    #search-overlay .overlay-close:hover { background: rgba(255,255,255,0.15); }
+
+    /* ── Nav Link Active Indicator ── */
+    #main-nav a[data-page] { position: relative; }
+    #main-nav a[data-page]::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%) scaleX(0); width: 60%; height: 2px; background: var(--nv-color-primary); border-radius: 1px; transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+    #main-nav a[data-page]:hover::after, #main-nav a[data-page].active::after { transform: translateX(-50%) scaleX(1); }
+
+    /* ── Quick Nav Circles (Overview Page) ── */
+    .quick-nav { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 32px; }
+    .quick-nav-item { width: 80px; height: 80px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; border: 1px solid var(--nv-color-border); background: var(--nv-color-surface); backdrop-filter: blur(8px); transition: all 0.3s var(--nv-ease-out); font-size: 0.7rem; font-weight: 600; color: var(--nv-color-text-secondary); }
+    .quick-nav-item:hover { transform: translateY(-6px) scale(1.05); border-color: var(--nv-color-primary); box-shadow: 0 8px 24px var(--nv-color-shadow-glow); color: var(--nv-color-text-primary); }
+    .quick-nav-item .qni-icon { font-size: 1.6rem; }
+
+    /* ── Responsive Overrides ── */
+    @media (max-width: 767px) {
+      .quick-nav-item { width: 60px; height: 60px; font-size: 0.6rem; }
+      .quick-nav-item .qni-icon { font-size: 1.2rem; }
+      #main-nav .nav-brand { display: none; }
+    }
+  </style>
+</head>
+<body class="theme-dynamic">
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- LOADING SCREEN                                                       -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div class="loading-screen" id="loading-screen">
+    <div class="loading-spinner"></div>
+    <p style="color:var(--nv-color-text-muted);font-size:0.875rem;letter-spacing:0.05em;">Forging your world...</p>
+  </div>
+
+  <!-- Skip link for accessibility -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- GLOBAL NAVIGATION BAR                                                -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <nav id="main-nav" class="site-header" role="navigation" aria-label="Main navigation">
+    <a href="#overview" class="nav-brand" aria-label="Go to overview">📖 {{PAGE_TITLE_SHORT}}</a>
+
+    <!-- Desktop nav links (hidden on mobile, replaced by hamburger menu) -->
+    <div class="site-nav" id="desktop-nav-links">
+      <a href="#overview" class="active" data-page="overview" aria-current="page">总览</a>
+      {{NAV_TIMELINE}}
+      <a href="#characters" data-page="characters">人物</a>
+      {{NAV_FACTIONS}}
+      {{NAV_BEINGS}}
+      {{NAV_RELATIONS}}
+      {{NAV_INTERACTIVE}}
+    </div>
+
+    <!-- Right-side actions -->
+    <div class="nav-actions">
+      <button id="search-trigger" class="btn btn-ghost nav-icon-btn" aria-label="Search (Ctrl+K)" title="Search (Ctrl+K)">🔍</button>
+      <button id="theme-toggle" class="nav-icon-btn" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">🌓</button>
+    </div>
+
+    <!-- Hamburger button (injected by navigation.js, but fallback exists) -->
+    <!-- navigation.js will replace this if needed -->
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ALL PAGES CONTAINER                                                  -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <main id="app" id="main-content">
+
+    <!-- ───── PAGE 1: OVERVIEW ───── -->
+    <section id="page-overview" class="page active" data-page="overview">
+      <div class="hero-section">
+        <h1>{{PAGE_TITLE}}</h1>
+        <p class="hero-subtitle">By {{PAGE_AUTHOR}} · {{PAGE_GENRE}}</p>
+        <p class="hero-summary">{{PAGE_SUMMARY}}</p>
+        <div class="hero-stats">{{HERO_STATS}}</div>
+        <div class="quick-nav">
+          {{QUICK_NAV}}
+        </div>
+        <p class="keyboard-hint" style="margin-top:24px;font-size:0.7rem;color:var(--nv-color-text-muted);opacity:0.5;">
+          ← → arrow keys to browse · 1–7 to jump · Ctrl+K to search
+        </p>
+      </div>
+    </section>
+
+    <!-- ───── PAGE 2: TIMELINE ───── -->
+    {{PAGE_TIMELINE}}
+
+    <!-- ───── PAGE 3: CHARACTERS ───── -->
+    <section id="page-characters" class="page" data-page="characters">
+      <div class="section">
+        <div class="section-header">
+          <h2>👤 Characters</h2>
+          <p class="section-description">The souls who breathe life into this world — browse, filter, and discover every character.</p>
+        </div>
+        <div class="entity-type-nav" role="tablist" aria-label="Filter entities by type">
+          <button role="tab" class="active" data-type="all" aria-selected="true">All</button>
+          <button role="tab" data-type="character" aria-selected="false">👤 Characters</button>
+          <button role="tab" data-type="faction" aria-selected="false">🏛️ Factions</button>
+          <button role="tab" data-type="creature" aria-selected="false">🐉 Creatures</button>
+        </div>
+        {{ENTITIES_ALL}}
+      </div>
+    </section>
+
+    <!-- ───── PAGE 4: FACTIONS ───── -->
+    {{PAGE_FACTIONS}}
+
+    <!-- ───── PAGE 5: BEINGS ───── -->
+    {{PAGE_BEINGS}}
+
+    <!-- ───── PAGE 6: RELATIONS ───── -->
+    {{PAGE_RELATIONS}}
+
+    <!-- ───── PAGE 7: INTERACTIVE ───── -->
+    {{PAGE_INTERACTIVE}}
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- DESIGN RATIONALE FOOTER                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  {{DESIGN_RATIONALE_FOOTER}}
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- SEARCH OVERLAY (global, accessible from any page)                    -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div id="search-overlay" aria-hidden="true">
+    <button class="overlay-close" id="search-close" aria-label="Close search">✕</button>
+    <div class="search-panel">
+      <input type="text" id="overlay-search-input" placeholder="搜索人物、派别、地点、事件...  (Ctrl+K)" autocomplete="off" aria-label="Search entities">
+      <div class="overlay-results" id="overlay-search-results">
+        <ul id="overlay-results-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL & TOAST CONTAINERS                                             -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div id="modal-container"></div>
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- DATA INJECTION                                                       -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <script>
+    window.WORLD_DATA = {{WORLD_DATA_JSON}};
+    window.IMAGE_ASSETS = {{IMAGE_ASSETS_JSON}};
+  </script>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- JAVASCRIPT MODULES (inlined)                                         -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <script>{{INLINE_JS}}</script>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- BOOTSTRAP                                                             -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <script>
+  (function(){
+    'use strict';
+
+    /* ── Theme Toggle ── */
+    function initTheme(){
+      var t = document.getElementById('theme-toggle');
+      if (!t) return;
+      var saved = localStorage.getItem('nv-theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+        t.setAttribute('aria-pressed', saved === 'dark' ? 'true' : 'false');
+        t.textContent = saved === 'dark' ? '☀️' : '🌓';
+      } else if (window.matchMedia('(prefers-color-scheme:dark)').matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        t.setAttribute('aria-pressed', 'true');
+        t.textContent = '☀️';
+      }
+      t.addEventListener('click', function(){
+        var cur = document.documentElement.getAttribute('data-theme'),
+            next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('nv-theme', next);
+        t.setAttribute('aria-pressed', next === 'dark' ? 'true' : 'false');
+        t.textContent = next === 'dark' ? '☀️' : '🌓';
+      });
+    }
+
+    /* ── Entity Type Filter (scoped per page) ── */
+    function initFilters(){
+      document.querySelectorAll('.entity-type-nav button').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var type = btn.dataset.type,
+              page = btn.closest('.page');
+          if (!page) return;
+          page.querySelectorAll('.entity-type-nav button').forEach(function(b){
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          page.querySelectorAll('.entity-group').forEach(function(group){
+            group.style.display = (type === 'all' || group.id === 'group-' + type) ? '' : 'none';
+          });
+        });
+      });
+    }
+
+    /* ── Boot Sequence ── */
+    function boot(){
+      initTheme();
+      initFilters();
+
+      if (window.WORLD_DATA) {
+        if (typeof NovelverseNavigation !== 'undefined') NovelverseNavigation.init();
+        if (typeof NovelverseInteractions !== 'undefined') NovelverseInteractions.init();
+        if (typeof NovelverseTimeline !== 'undefined' && document.getElementById('page-timeline')) {
+          NovelverseTimeline.init();
+        }
+        if (typeof NovelverseSearch !== 'undefined') NovelverseSearch.init(window.WORLD_DATA);
+      }
+
+      // Hide loading screen
+      setTimeout(function(){
+        var ls = document.getElementById('loading-screen');
+        if (ls) { ls.classList.add('hidden'); setTimeout(function(){ ls.remove(); }, 600); }
+      }, 500);
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
+  })();
+  </script>
+</body>
+</html>
